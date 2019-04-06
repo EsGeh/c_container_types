@@ -3,8 +3,14 @@
 
 #include "LinkedList.h"
 
+#define MAP_FORALL_KEYS_BEGIN(MAP,KEY,map,key) \
+	LIST_FORALL_BEGIN(MAP##_KeyList,MAP##_KeyListEl,KEY, MAP##_get_keys( map),i,keyEl) \
+	KEY key = *keyEl->pData;
 
-#define DECL_MAP(MAP,KEY,TYPE,MALLOC,FREE,DEL_TYPE,HASH) \
+#define MAP_FORALL_KEYS_END(MAP,KEY,map,key) \
+	LIST_FORALL_END(MAP##_KeyList,MAP##_KeyListEl,KEY, MAP##_get_keys( map),i,keyEl)
+
+#define DECL_MAP(MAP,KEY,TYPE,MALLOC,FREE,DEL_TYPE,HASH, COMPARE_KEYS) \
 typedef struct \
 { \
 	KEY key; \
@@ -26,15 +32,19 @@ DEF_LIST(MAP##_Bucket, MAP##_BucketEl, MAP##_Entry, MALLOC,FREE,MAP##_free_entry
 DECL_BUFFER(MAP##_Buckets,MAP##_Bucket, MALLOC, FREE) \
 DEF_BUFFER(MAP##_Buckets,MAP##_Bucket, MALLOC, FREE) \
  \
-struct S##MAP\
+DECL_LIST(MAP##_KeyList, MAP##_KeyListEl, KEY, MALLOC,FREE,FREE) \
+DEF_LIST(MAP##_KeyList, MAP##_KeyListEl, KEY, MALLOC,FREE,FREE) \
+ \
+struct S##MAP \
 { \
 	MAP##_Buckets buckets; \
+	MAP##_KeyList keys; \
 } ; \
  \
 typedef struct S##MAP MAP;
 
 
-#define DEF_MAP(MAP,KEY,TYPE,MALLOC,FREE,DEL_TYPE,HASH) \
+#define DEF_MAP(MAP,KEY,TYPE,MALLOC,FREE,DEL_TYPE,HASH,COMPARE_KEYS ) \
 INLINE void MAP##_init( MAP* map, int size) \
 { \
 	MAP##_Buckets##_init( & map->buckets, size ); \
@@ -44,6 +54,7 @@ INLINE void MAP##_init( MAP* map, int size) \
 			& MAP##_Buckets_get_array( & map->buckets )[i]  \
 		); \
 	} \
+	MAP##_KeyList##_init( & map->keys ); \
 } \
  \
 INLINE void MAP##_exit( MAP* map ) \
@@ -55,6 +66,7 @@ INLINE void MAP##_exit( MAP* map ) \
 		); \
 	} \
 	MAP##_Buckets##_exit( & map->buckets ); \
+	MAP##_KeyList##_exit( & map->keys ); \
 } \
  \
 INLINE MAP##_Bucket* MAP##_priv_find_bucket( \
@@ -79,6 +91,11 @@ INLINE MAP##_BucketEl* MAP##_priv_find_bucket_el( \
 	return NULL; \
 } \
  \
+INLINE int MAP##_get_size( MAP* map ) \
+{ \
+	return MAP##_KeyList##_get_size( & map->keys ); \
+} \
+ \
 INLINE void MAP##_delete( \
 	MAP* map, \
 	KEY key \
@@ -90,6 +107,8 @@ INLINE void MAP##_delete( \
 	{ \
 		MAP##_Bucket##_del( bucket, bucketEl ); \
 	} \
+	MAP##_KeyListEl* pKeyEl = MAP##_KeyList##_get_element( & map->keys, & key, &COMPARE_KEYS); \
+	MAP##_KeyList##_del( & map->keys, pKeyEl ); \
 } \
  \
 INLINE void MAP##_insert( \
@@ -98,6 +117,9 @@ INLINE void MAP##_insert( \
 	TYPE* x \
 ) \
 { \
+	KEY* new_key = MALLOC( sizeof( KEY ) ); \
+	(*new_key) = key; \
+	MAP##_KeyList##_append( & map->keys, new_key ); \
 	MAP##_Bucket* bucket = MAP##_priv_find_bucket( map, key ); \
 	MAP##_BucketEl* bucketEl = MAP##_priv_find_bucket_el( bucket, key ); \
 	if( bucketEl != NULL ) \
@@ -121,6 +143,13 @@ INLINE TYPE* MAP##_get( \
 	return bucketEl->pData->value; \
 } \
  \
+INLINE MAP##_KeyList* MAP##_get_keys( \
+	MAP* map \
+) \
+{ \
+	return & map->keys; \
+} \
+ \
 INLINE void MAP##_clear( \
 	MAP* map \
 ) \
@@ -131,6 +160,7 @@ INLINE void MAP##_clear( \
 			& MAP##_Buckets_get_array( & map->buckets )[i]  \
 		); \
 	} \
+	MAP##_KeyList##_clear( & map->keys ); \
 }
 
 #endif

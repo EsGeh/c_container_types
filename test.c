@@ -40,9 +40,10 @@ DECL_LIST(List, El, int, MALLOC, FREE, FREE)
 DEF_LIST(List, El, int, MALLOC, FREE, FREE)
 
 #define HASH_INT(key) (key)
+BOOL compare_ints( int* x, int* y ) { return *x == *y; }
 
-DECL_MAP(Map, int, char, MALLOC, FREE, FREE, HASH_INT)
-DEF_MAP(Map, int, char, MALLOC, FREE, FREE, HASH_INT)
+DECL_MAP(Map, int, char, MALLOC, FREE, FREE, HASH_INT, compare_ints)
+DEF_MAP(Map, int, char, MALLOC, FREE, FREE, HASH_INT, compare_ints)
 
 void test_buffer();
 void test_dynarray();
@@ -211,6 +212,7 @@ void test_map() /* TODO: test all functions: */
 
 		{
 			assert( Map_get( &container, 1 ) ==  NULL );
+			assert( Map_KeyList_get_size( Map_get_keys( &container ) ) == 0 );
 		}
 
 		printf( "append(1 -> 'a')...\n" );
@@ -219,6 +221,7 @@ void test_map() /* TODO: test all functions: */
 			*new = 'a';
 			Map_insert( &container, 1, new );
 			assert( *Map_get( &container, 1 ) ==  'a' );
+			assert( Map_KeyList_get_size( Map_get_keys( &container ) ) == 1 );
 		}
 
 		printf( "append(2 -> 'b')...\n" );
@@ -227,6 +230,7 @@ void test_map() /* TODO: test all functions: */
 			*new = 'b';
 			Map_insert( &container, 2, new );
 			assert( *Map_get( &container, 2 ) ==  'b' );
+			assert( Map_KeyList_get_size( Map_get_keys( &container ) ) == 2 );
 		}
 
 		printf( "append(3 -> 'c')...\n" );
@@ -235,13 +239,26 @@ void test_map() /* TODO: test all functions: */
 			*new = 'c';
 			Map_insert( &container, 3, new );
 			assert( *Map_get( &container, 3 ) ==  'c' );
+			assert( Map_KeyList_get_size( Map_get_keys( &container ) ) == 3 );
 		}
 
 		printf( "delete(2)...\n" );
 		{
 			Map_delete( &container, 2 );
 			assert( Map_get( &container, 2 ) ==  NULL );
+			assert( Map_KeyList_get_size( Map_get_keys( &container ) ) == 2 );
 		}
+		
+		printf( "keys:\n" );
+		MAP_FORALL_KEYS_BEGIN(Map,int,&container,key)
+			printf( "key: %i\n", key );
+		MAP_FORALL_KEYS_END(Map,int,&container,key)
+		/*
+		Map_KeyList* keys = Map_get_keys( &container );
+		LIST_FORALL_BEGIN(Map_KeyList,Map_KeyListEl,int,keys,i,pKeyEl)
+			printf( "key: %i\n", * pKeyEl->pData );
+		LIST_FORALL_END(Map_KeyList,Map_KeyListEl,int,keys,i,pKeyEl)
+		*/
 
 	}
 	Map_exit( &container );
