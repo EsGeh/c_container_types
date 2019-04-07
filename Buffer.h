@@ -7,7 +7,7 @@
 #define DECL_BUFFER(BUF_TYPE,EL_TYPE,MALLOC,FREE) \
  \
 typedef struct S##BUF_TYPE{ \
-	int size; \
+	unsigned int size; \
 	EL_TYPE* array; \
 } BUF_TYPE;
 
@@ -15,7 +15,7 @@ typedef struct S##BUF_TYPE{ \
  \
 INLINE void BUF_TYPE##_init( \
 	BUF_TYPE* buf, \
-	int size \
+	unsigned int size \
 ) \
 { \
 	buf -> size = size; \
@@ -30,7 +30,7 @@ INLINE void BUF_TYPE##_exit( \
 	buf -> array = NULL; \
 	buf -> size = 0; \
 } \
-INLINE int BUF_TYPE##_get_size( \
+INLINE unsigned int BUF_TYPE##_get_size( \
 	BUF_TYPE* buf \
 ) \
 { \
@@ -46,7 +46,7 @@ INLINE EL_TYPE* BUF_TYPE##_get_array( \
  \
 INLINE void BUF_TYPE##_resize( \
 	BUF_TYPE* buf, \
-	int size \
+	unsigned int size \
 ) \
 { \
 	EL_TYPE* newA; \

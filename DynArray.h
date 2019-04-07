@@ -16,7 +16,7 @@
 #define DECL_DYN_ARRAY_IMPL(ARRAY_TYPE,EL_TYPE,BUF_TYPE) \
  \
 typedef struct S##ARRAY_TYPE { \
-	int size; \
+	unsigned int size; \
 	BUF_TYPE buffer; \
 } ARRAY_TYPE;
 
@@ -38,7 +38,7 @@ INLINE void ARRAY_TYPE##_exit( \
 	BUF_TYPE##_exit( &array->buffer); \
 } \
 \
-INLINE int ARRAY_TYPE##_get_size( \
+INLINE unsigned int ARRAY_TYPE##_get_size( \
 	ARRAY_TYPE* array \
 ) \
 { \
@@ -52,7 +52,7 @@ INLINE EL_TYPE* ARRAY_TYPE##_get_array( \
 	return BUF_TYPE##_get_array( & array->buffer ); \
 } \
 \
-INLINE int ARRAY_TYPE##_get_alloc_size( \
+INLINE unsigned int ARRAY_TYPE##_get_alloc_size( \
 	ARRAY_TYPE* array \
 ) \
 { \
@@ -61,7 +61,7 @@ INLINE int ARRAY_TYPE##_get_alloc_size( \
  \
 INLINE void ARRAY_TYPE##_set_size( \
 	ARRAY_TYPE* array, \
-	int size \
+	unsigned int size \
 ) \
 { \
 	if( size > ARRAY_TYPE##_get_alloc_size( array ) ) \

@@ -3,9 +3,16 @@
 
 #include "LinkedList.h"
 
+#ifdef DEBUG_MAP
+	#define DB_MAP( msg, ...) \
+		DB_PRINT( msg, __VA_ARGS__ )
+#else
+	#define DB_MAP( msg, ... )
+#endif
+
 #define MAP_FORALL_KEYS_BEGIN(MAP,KEY,map,key) \
 	LIST_FORALL_BEGIN(MAP##_KeyList,MAP##_KeyListEl,KEY, MAP##_get_keys( map),i,keyEl) \
-	KEY key = *keyEl->pData;
+	KEY key = *(keyEl->pData);
 
 #define MAP_FORALL_KEYS_END(MAP,KEY,map,key) \
 	LIST_FORALL_END(MAP##_KeyList,MAP##_KeyListEl,KEY, MAP##_get_keys( map),i,keyEl)
@@ -23,7 +30,7 @@ INLINE void MAP##_free_entry( \
 ) \
 { \
 	DEL_TYPE( entry->value, sizeof( TYPE ) ); \
-	FREE( entry, sizeof( MAP##_Entry ) );\
+	FREE( entry, size );\
 } \
 \
 DECL_LIST(MAP##_Bucket, MAP##_BucketEl, MAP##_Entry, MALLOC,FREE,MAP##_free_entry) \
@@ -47,6 +54,7 @@ typedef struct S##MAP MAP;
 #define DEF_MAP(MAP,KEY,TYPE,MALLOC,FREE,DEL_TYPE,HASH,COMPARE_KEYS ) \
 INLINE void MAP##_init( MAP* map, int size) \
 { \
+	DB_MAP( "%p: %s", map, __func__ ); \
 	MAP##_Buckets##_init( & map->buckets, size ); \
 	for( int i=0; i<size; i++ ) \
 	{ \
@@ -59,6 +67,7 @@ INLINE void MAP##_init( MAP* map, int size) \
  \
 INLINE void MAP##_exit( MAP* map ) \
 { \
+	DB_MAP( "%p: %s", map, __func__ ); \
 	for( int i=0; i< MAP##_Buckets_get_size( & map->buckets ); i++ ) \
 	{ \
 		MAP##_Bucket##_exit( \
@@ -74,8 +83,9 @@ INLINE MAP##_Bucket* MAP##_priv_find_bucket( \
 	KEY key \
 ) \
 { \
-	int size = MAP##_Buckets_get_size( & map->buckets ); \
-	int hash = HASH( key ) % size ; \
+	unsigned int size = MAP##_Buckets_get_size( & map->buckets ); \
+	unsigned int hash = HASH( key ) % size ; \
+	DB_MAP( "%p: %s returning %i: ", map, __func__, hash); \
 	return & MAP##_Buckets_get_array( & map -> buckets )[ hash ]; \
 } \
  \
@@ -86,8 +96,12 @@ INLINE MAP##_BucketEl* MAP##_priv_find_bucket_el( \
 { \
 	LIST_FORALL_BEGIN(MAP##_Bucket,MAP##_BucketEl,Entry,bucket,index,pEl) \
 		if( pEl->pData->key == key ) \
+		{ \
+			DB_MAP( "?: %s returning %p", __func__, pEl); \
 			return pEl; \
+		} \
 	LIST_FORALL_END(MAP##_Bucket,MAP##_BucketEl,Entry,bucket,index,pEl) \
+	DB_MAP( "?: %s returning NULL" ); \
 	return NULL; \
 } \
  \
@@ -101,6 +115,7 @@ INLINE void MAP##_delete( \
 	KEY key \
 ) \
 { \
+	DB_MAP( "%p: %s", map, __func__ ); \
 	MAP##_Bucket* bucket = MAP##_priv_find_bucket( map, key ); \
 	MAP##_BucketEl* bucketEl = MAP##_priv_find_bucket_el( bucket, key ); \
 	if( bucketEl != NULL ) \
@@ -117,6 +132,7 @@ INLINE void MAP##_insert( \
 	TYPE* x \
 ) \
 { \
+	DB_MAP( "%p: %s", map, __func__ ); \
 	KEY* new_key = MALLOC( sizeof( KEY ) ); \
 	(*new_key) = key; \
 	MAP##_KeyList##_append( & map->keys, new_key ); \
@@ -136,6 +152,7 @@ INLINE TYPE* MAP##_get( \
 	KEY key \
 ) \
 { \
+	DB_MAP( "%p: %s", map, __func__ ); \
 	MAP##_Bucket* bucket = MAP##_priv_find_bucket( map, key ); \
 	MAP##_BucketEl* bucketEl = MAP##_priv_find_bucket_el( bucket, key ); \
 	if( bucketEl == NULL ) \
@@ -154,6 +171,7 @@ INLINE void MAP##_clear( \
 	MAP* map \
 ) \
 { \
+	DB_MAP( "%p: %s", map, __func__ ); \
 	for( int i=0; i< MAP##_Buckets_get_size( & map->buckets ); i++ ) \
 	{ \
 		MAP##_Bucket##_clear( \

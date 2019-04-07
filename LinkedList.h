@@ -60,13 +60,13 @@ INLINE void LIST##_init(LIST* pList);\
 INLINE void LIST##_exit(LIST* pList);\
 \
 INLINE int LIST##_is_empty(LIST* pList);\
-INLINE int LIST##_get_size(LIST* pList);\
+INLINE unsigned int LIST##_get_size(LIST* pList);\
 \
 INLINE ELEMENT* LIST##_get_first(LIST* pList) ;\
 INLINE ELEMENT* LIST##_get_last(LIST* pList) ;\
 INLINE int LIST##_has_next(LIST* pList, ELEMENT* element);\
 INLINE int LIST##_has_prev(LIST* pList, ELEMENT* element);\
-INLINE ELEMENT* LIST##_get_element_from_pointer(LIST* pList, const DATA* pData);\
+INLINE ELEMENT* LIST##_get_element_from_pointer(LIST* pList, DATA* pData);\
 INLINE ELEMENT* LIST##_get_element(LIST* pList, DATA* pData, LIST##PCompareFunction pCompareFunction);\
 INLINE ELEMENT* LIST##_get_next(LIST* pList, ELEMENT* element) ;\
 INLINE ELEMENT* LIST##_get_prev(LIST* pList, ELEMENT* element);\
@@ -110,7 +110,7 @@ INLINE int LIST##_is_empty(LIST* pList)\
 {\
     return pList->pHead == NULL;\
 }\
-INLINE int LIST##_get_size(LIST* pList)\
+INLINE unsigned int LIST##_get_size(LIST* pList)\
 {\
     return pList->size;\
 }\
@@ -136,7 +136,7 @@ INLINE int LIST##_has_prev(LIST* pList, ELEMENT* element)\
     return (element != pList-> pHead);\
 }\
 \
-INLINE ELEMENT* LIST##_get_element_from_pointer(LIST* pList,const DATA* pData)\
+INLINE ELEMENT* LIST##_get_element_from_pointer(LIST* pList,DATA* pData)\
 {\
 	if(!LIST##_is_empty(pList))\
 	{\
